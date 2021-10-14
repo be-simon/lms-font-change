@@ -21,3 +21,9 @@ submitBtn.onclick = () => {
 //     font-weight: normal;
 //     font-style: normal;
 // }
+
+// @import url(//fonts.googleapis.com/earlyaccess/kopubbatang.css);
+
+// .kopubbatang * {
+//  font-family: 'KoPub Batang', serif;
+// }
