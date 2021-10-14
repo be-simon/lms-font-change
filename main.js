@@ -9,6 +9,7 @@ chrome.runtime.onMessage.addListener(req => {
     }
 })
 
+
 new Promise((resolve, reject) => {
     chrome.storage.local.get(['fontObj'], function(fontObj) {
         const err = chrome.runtime.lastError
@@ -16,6 +17,7 @@ new Promise((resolve, reject) => {
         else resolve(fontObj) 
     });
 }).then(o => applyFont(o.fontObj))
+.catch(err => console.log(err))
 
 
 function webFontParsing(fontText) {
@@ -60,6 +62,17 @@ function webFontParsing(fontText) {
     return fontObj
 }
 
+function getAllFamilyProperty() {
+    return Array.from(document.styleSheets)
+        .filter(sheet => sheet.href === null || sheet.href.startsWith(window.location.origin))
+        .reduce((acc, sheet) =>
+        (acc = [...acc, ...Array.from(sheet.cssRules).reduce((def, rule) =>
+            (def = rule.selectorText === ":root"
+            ? [...def, ...Array.from(rule.style).filter(name => name.endsWith("-fontFamily"))]
+            : def), [])
+        ]), []);
+}
+
 function applyFont(fontObj) {
     const src = fontObj.src
     const family = fontObj.family
@@ -68,31 +81,28 @@ function applyFont(fontObj) {
         if (k !== 'src' && k !== 'family')
             des[k] = v
     }
-    console.log(family)
-    console.log(src)
-    console.log(des)
+    
     const webfont = new FontFace(family, src, des);
     webfont.load().then(f => {
-        // console.log(f)
+        document.fonts.add(f)
+        
+        fontVariables = getAllFamilyProperty()
+        fontVariables.forEach(fn => root.style.setProperty(fn, f.family))
         root.style.fontFamily = f.family
         document.body.style.fontFamily = f.family
+        root.style.setProperty('--fbyHH-fontFamily', f.family)
+        root.style.setProperty('--emyav-fontFamily', f.family)
         
-        fontVariables = Array.from(document.styleSheets)
-        .filter(sheet => sheet.href === null || sheet.href.startsWith(window.location.origin))
-        .reduce((acc, sheet) =>
-            (acc = [...acc, ...Array.from(sheet.cssRules).reduce((def, rule) =>
-                (def = rule.selectorText === ":root"
-                    ? [...def, ...Array.from(rule.style).filter(name => name.endsWith("-fontFamily"))]
-                    : def), [])
-            ]), []);
-        
-        fontVariables.forEach(fn => root.style.setProperty(fn, f.family))
-        // fontVariables.forEach(f => console.log(f))
-        
-        // const newStyle = document.createElement('style')
-        // const cssText = `{font-family: "${f.family}";}`
-        // document.head.appendChild(newStyle)
-        // newStyle.sheet.insertRule('h1, h2, h3, h4, h5, h6' + cssText, 0)
-        // newStyle.sheet.insertRule('input, button, select, textarea' + cssText, 0)
-    })   
+        // const iframeDocument = document.getElementById('tool_content').contentWindow.document
+        // iframeDocument.body.onload = () => console.log('frame loaded')
+        // fontVariables.forEach(fn => iframeDocumentRoot.style.setProperty(fn, f.family))
+        // iframeDocumentRoot.documentElement.style.fontFamily = f.family
+
+
+        const newStyle = document.createElement('style')
+        const cssText = `{font-family: "${f.family}";}`
+        document.head.appendChild(newStyle)
+        newStyle.sheet.insertRule('h1, h2, h3, h4, h5, h6' + cssText, 0)
+        newStyle.sheet.insertRule('input, button, select, textarea' + cssText, 0)
+    }).catch(err => console.log(err))
 }
