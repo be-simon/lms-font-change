@@ -3,10 +3,20 @@ const root = document.documentElement
 chrome.runtime.onMessage.addListener(req => {
     if (req.message === 'send web font text') {
         const fontObj = webFontParsing(req.content)
-        console.log(fontObj)
-        applyFont(fontObj)
+        chrome.storage.local.set({'fontObj': fontObj}, function() {
+            location.reload()
+        });
     }
 })
+
+new Promise((resolve, reject) => {
+    chrome.storage.local.get(['fontObj'], function(fontObj) {
+        const err = chrome.runtime.lastError
+        if (err) reject(err)
+        else resolve(fontObj) 
+    });
+}).then(o => applyFont(o.fontObj))
+
 
 function webFontParsing(fontText) {
     const type = fontText.split(' ')[0]
@@ -21,9 +31,8 @@ function webFontParsing(fontText) {
                 if (value){
                     key = key.replace(/\s/g, '')
                     value = value.slice(0, -1)
-                    if (key === 'font-family'){
+                    if (key === 'font-family')
                         value = value.split(',')[0].slice(1, -1)
-                    }
                     if (key.startsWith('font-'))
                         key = key.substring(5)
                     fontObj[key] = value
@@ -36,8 +45,10 @@ function webFontParsing(fontText) {
                 if (value) {
                     key = key.replace(/\s/g, '')
                     value = value.slice(0, -1)
-                    if (key === 'font-family'){
+                    if (key === 'font-family')
                         value = value.slice(1, -1)
+                    if (key === 'src') {
+                        value = `url(${value.split('\'')[1]})`
                     }
                     if (key.startsWith('font-'))
                         key = key.substring(5)
@@ -57,11 +68,14 @@ function applyFont(fontObj) {
         if (k !== 'src' && k !== 'family')
             des[k] = v
     }
-
+    console.log(family)
+    console.log(src)
+    console.log(des)
     const webfont = new FontFace(family, src, des);
     webfont.load().then(f => {
-        root.style.fontFamily = family
-        document.body.style.fontFamily = family
+        // console.log(f)
+        root.style.fontFamily = f.family
+        document.body.style.fontFamily = f.family
         
         fontVariables = Array.from(document.styleSheets)
         .filter(sheet => sheet.href === null || sheet.href.startsWith(window.location.origin))
@@ -72,13 +86,13 @@ function applyFont(fontObj) {
                     : def), [])
             ]), []);
         
-        fontVariables.forEach(f => root.style.setProperty(f, family))
+        fontVariables.forEach(fn => root.style.setProperty(fn, f.family))
         // fontVariables.forEach(f => console.log(f))
         
-        const newStyle = document.createElement('style')
-        const cssText = `{font-family: ${family};}`
-        document.head.appendChild(newStyle)
-        newStyle.sheet.insertRule('h1, h2, h3, h4, h5, h6' + cssText, 0)
-        newStyle.sheet.insertRule('input, button, select, textarea' + cssText, 0)
+        // const newStyle = document.createElement('style')
+        // const cssText = `{font-family: "${f.family}";}`
+        // document.head.appendChild(newStyle)
+        // newStyle.sheet.insertRule('h1, h2, h3, h4, h5, h6' + cssText, 0)
+        // newStyle.sheet.insertRule('input, button, select, textarea' + cssText, 0)
     })   
 }
