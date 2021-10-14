@@ -1,0 +1,16 @@
+{
+  "name": "lms-customize",
+  "version": "1.0",
+  "manifest_version": 3,
+  "content_scripts": [
+    {
+      "matches": ["https://learning.hanyang.ac.kr/*"],
+      "js": ["main.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "action" : {
+    "default_popup" : "popup.html"
+  }
+  
+}
