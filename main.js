@@ -1,13 +1,13 @@
 const root = document.documentElement
 const errMsg = '웹 폰트 서식이 올바르지 않습니다.\n다시 입력해주세요.'
 
-chrome.runtime.onMessage.addListener(req => {
+chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
   if (req.message === 'send web font text') {
     try {
       const fontObj = webFontParsing(req.content)
-      chrome.storage.local.set({'fontObj': fontObj}, function() {
-        location.reload()
-      });
+      chrome.storage.local.set({'fontObj': fontObj})
+      sendResponse({res: 'success to apply font'})
+      location.reload()
     } catch (err) {
       alert(errMsg)
     }

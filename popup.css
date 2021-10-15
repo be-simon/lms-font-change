@@ -5,6 +5,7 @@ textarea {
 #container {
   display: flex;
   flex-direction: column;
+  width: 350px;
 }
 
 #nav {
@@ -13,10 +14,11 @@ textarea {
   align-items: center;
   height: 40px;
   margin-bottom: 6px;
-  font-size: 13px;
+  font-size: 14px;
 }
 
-#current_font {
+
+#cur_font {
   margin-left: 3px;
 }
 
