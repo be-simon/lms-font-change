@@ -1,14 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <script src="popup.js" defer></script>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="popup.css">
+  <script src="popup.js" defer></script>
 </head>
 <body>
-   <textarea id="textarea" cols="30" rows="10"></textarea>
-   <button id="submit_btn">제출</button>
+  <div id="container">
+    <nav id="nav">
+      <p id="current_font">현재 폰트: </p>
+      <button id="submit_btn">폰트 적용</button>
+    </nav>
+    <textarea id="textarea" cols="30" rows="10"></textarea>
+  </div>
 </body>
 </html>

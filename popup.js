@@ -12,18 +12,3 @@ submitBtn.onclick = () => {
         })
 }
 
-
-
-
-// @font-face {
-//     font-family: 'MapoFlowerIsland';
-//     src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/MapoFlowerIslandA.woff') format('woff');
-//     font-weight: normal;
-//     font-style: normal;
-// }
-
-// @import url(//fonts.googleapis.com/earlyaccess/kopubbatang.css);
-
-// .kopubbatang * {
-//  font-family: 'KoPub Batang', serif;
-// }

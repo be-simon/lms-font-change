@@ -1,0 +1,41 @@
+textarea {
+  resize: none;
+}
+
+#container {
+  display: flex;
+  flex-direction: column;
+}
+
+#nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 40px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+#current_font {
+  margin-left: 3px;
+}
+
+#submit_btn {
+  width: 120px;
+  height: 100%;
+  background-color: transparent;
+  color: #121212;
+  border-radius: 3px;
+  border: 1px solid #121212;
+  box-shadow: none;
+  transition: 0.2s;
+}
+
+#submit_btn:hover {
+  cursor: pointer;
+  background-color: #027ad6;
+  color: #ffffff;
+  border: 1px solid #027ad6;
+
+}
+
