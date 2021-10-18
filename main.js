@@ -6,9 +6,10 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
     try {
       const fontObj = webFontParsing(req.content)
       chrome.storage.local.set({'fontObj': fontObj})
-      sendResponse({res: 'success to apply font'})
+      sendResponse({message: 'success to apply font'})
       location.reload()
     } catch (err) {
+      console.log(err.message)
       alert(errMsg)
     }
   }
@@ -22,8 +23,14 @@ new Promise((resolve, reject) => {
     else resolve(fontObj) 
   });
 }).then(obj => loadWebFont(obj.fontObj))
-.then(fontRes => applyFont(fontRes))
-.catch(err => alert(errMsg))
+.then(fontRes => {
+  applyFont(fontRes)
+  applyFontFrame(fontRes)
+})
+.catch(err => {
+  console.log(err)
+  alert(errMsg)
+})
 
 
 function webFontParsing(fontText) {
@@ -34,41 +41,49 @@ function webFontParsing(fontText) {
   try {
     switch (type) {
       case '@import':
-        fontObj.src = lineList[0].split(' ')[1].slice(0, -1)
+        let url = lineList[0].split(' ')[1].slice(4, -2)
+        if (url.split('\'').length > 1)
+          url = url.split('\'')[1]  
+
+        if (!url.startsWith('https:'))
+          url = 'https:' + url
+        
+        fontObj.src = `url(${url})`
+
+        for (l of lineList) {
+        let [key, value] = l.split(': ')
+        if (value){
+          key = key.replace(/\s/g, '')
+          value = value.slice(0, -1)
+          if (key === 'font-family')
+            value = value.split(',')[0].slice(1, -1)
+          if (key.startsWith('font-'))
+            key = key.substring(5)
+          fontObj[key] = value
+        }
+      }
+      
+      case '@font-face':
         for (l of lineList) {
           let [key, value] = l.split(': ')
-          if (value){
+          if (value) {
             key = key.replace(/\s/g, '')
             value = value.slice(0, -1)
             if (key === 'font-family')
-              value = value.split(',')[0].slice(1, -1)
+            value = value.slice(1, -1)
+            if (key === 'src')
+              value = `url(${value.split('\'')[1]})`
             if (key.startsWith('font-'))
               key = key.substring(5)
             fontObj[key] = value
           }
         }
-        
-        case '@font-face':
-          for (l of lineList) {
-            let [key, value] = l.split(': ')
-            if (value) {
-              key = key.replace(/\s/g, '')
-              value = value.slice(0, -1)
-              if (key === 'font-family')
-              value = value.slice(1, -1)
-              if (key === 'src')
-                value = `url(${value.split('\'')[1]})`
-              if (key.startsWith('font-'))
-                key = key.substring(5)
-              fontObj[key] = value
-            }
-          }
-        }
+    }
 
-      if (!Object.keys(fontObj).length)
-        throw 'empty font object'
+    if (!Object.keys(fontObj).length)
+      throw 'empty font object'
 
-      return fontObj
+    return fontObj
   } catch (err) {
     throw err
   }
@@ -109,15 +124,21 @@ function applyFont(webFontRes) {
   document.body.style.fontFamily = newFontFamily
   root.style.setProperty('--fbyHH-fontFamily', newFontFamily)
   root.style.setProperty('--emyav-fontFamily', newFontFamily)
-  
-  // const iframeDocument = document.getElementById('tool_content').contentWindow.document
-  // iframeDocument.body.onload = () => console.log('frame loaded')
-  // fontVariables.forEach(fn => iframeDocumentRoot.style.setProperty(fn, f.family))
-  // iframeDocumentRoot.documentElement.style.fontFamily = f.family
 
   const newStyle = document.createElement('style')
   const cssText = `{font-family: "${newFontFamily}";}`
   document.head.appendChild(newStyle)
   newStyle.sheet.insertRule('h1, h2, h3, h4, h5, h6' + cssText, 0)
   newStyle.sheet.insertRule('input, button, select, textarea' + cssText, 0)
+}
+
+function applyFontFrame(webFontRes) {
+  const target = document.getElementById('tool_content')
+  target.onload = function () {
+    const frameDocument = target.contentWindow.document
+    frameDocument.fonts.add(webFontRes)
+    const newFontFamily = webFontRes.family
+
+    frameDocument.body.style.fontFamily = newFontFamily
+  }
 }
