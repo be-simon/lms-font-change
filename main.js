@@ -1,5 +1,5 @@
 const root = document.documentElement
-const errMsg = '웹 폰트 서식이 올바르지 않습니다.\n다시 입력해주세요.'
+const fontParsingErrorMsg = '웹 폰트 서식이 올바르지 않습니다.\n다시 입력해주세요.'
 
 chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
   if (req.message === 'send web font text') {
@@ -9,8 +9,10 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
       sendResponse({message: 'success to apply font'})
       location.reload()
     } catch (err) {
-      console.log(err.message)
-      alert(errMsg)
+      if (err.name === 'ParsingError')
+        alert(err.message)
+      else
+        console.log(err)
     }
   }
 })
@@ -22,14 +24,17 @@ new Promise((resolve, reject) => {
     if (err) reject(err)
     else resolve(fontObj) 
   });
-}).then(obj => loadWebFont(obj.fontObj))
+})
+.then(obj => loadWebFont(obj.fontObj))
 .then(fontRes => {
   applyFont(fontRes)
   applyFontFrame(fontRes)
 })
 .catch(err => {
-  console.log(err)
-  alert(errMsg)
+  if (err.name === 'ParsingError')
+    alert(err.message)
+  else
+    console.log(err)
 })
 
 
@@ -80,8 +85,11 @@ function webFontParsing(fontText) {
         }
     }
 
-    if (!Object.keys(fontObj).length)
-      throw 'empty font object'
+    if (!Object.keys(fontObj).length){
+      const err = new Error(fontParsingErrorMsg)
+      err.name = 'ParsingError'
+      throw err
+    }
 
     return fontObj
   } catch (err) {
@@ -134,11 +142,12 @@ function applyFont(webFontRes) {
 
 function applyFontFrame(webFontRes) {
   const target = document.getElementById('tool_content')
-  target.onload = function () {
-    const frameDocument = target.contentWindow.document
-    frameDocument.fonts.add(webFontRes)
-    const newFontFamily = webFontRes.family
+  if (target)
+    target.onload = function () {
+      const frameDocument = target.contentWindow.document
+      frameDocument.fonts.add(webFontRes)
+      const newFontFamily = webFontRes.family
 
-    frameDocument.body.style.fontFamily = newFontFamily
-  }
+      frameDocument.body.style.fontFamily = newFontFamily
+    }
 }
