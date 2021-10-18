@@ -103,7 +103,7 @@ function getAllFamilyProperty() {
     .reduce((acc, sheet) =>
     (acc = [...acc, ...Array.from(sheet.cssRules).reduce((def, rule) =>
       (def = rule.selectorText === ":root"
-      ? [...def, ...Array.from(rule.style).filter(name => name.endsWith("-fontFamily"))]
+      ? [...def, ...Array.from(rule.style).filter(name => name.endsWith("Family"))]
       : def), [])
     ]), []);
 }
@@ -132,6 +132,11 @@ function applyFont(webFontRes) {
   document.body.style.fontFamily = newFontFamily
   root.style.setProperty('--fbyHH-fontFamily', newFontFamily)
   root.style.setProperty('--emyav-fontFamily', newFontFamily)
+  root.style.setProperty('--cjUyb-fontFamily', newFontFamily)
+  root.style.setProperty('--eAJaG-fontFamily', newFontFamily)
+  root.style.setProperty('--bdYPe-fontFamily', newFontFamily)
+  root.style.setProperty('--bDzpk-fontFamily', newFontFamily)
+
 
   const newStyle = document.createElement('style')
   const cssText = `{font-family: "${newFontFamily}";}`
